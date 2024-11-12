@@ -1,6 +1,7 @@
 #include "lsf_module.h"
-#include <systemc-ams>
 #include "sin_src.h"
+#include <scams/predefined_moc/lsf/sca_lsf_signal.h>
+#include <systemc-ams>
 
 int sc_main(int argc, char *argv[]) {
   sca_tdf::sca_signal<double> input, output;
@@ -10,14 +11,18 @@ int sc_main(int argc, char *argv[]) {
   const double FC = 1.0;
   const double H0 = 2.0;
 
-  lsf_module lsf("lsf_ltf_zp", FC , H0, time_step);
+  double k;
+  sca_util::sca_vector<sca_util::sca_complex> poles, zeros;
+  poles(0) = sca_util::sca_complex(-2.0 * M_PI * FC, 0.0);
+  k = H0 * 2.0 * M_PI * FC;
 
-  lsf.out(output);
+  lsf_module lsf("lsf_ltf_zp", zeros, poles, k);
+
   lsf.in(input);
+  lsf.out(output);
 
   sin_src sin0("sin0", 3.3, 10000, time_step);
   sin0.out(input);
-
 
   sca_util::sca_trace_file *vcdfile =
       sca_util::sca_create_vcd_trace_file("lsf_ltf_zp.vcd");
